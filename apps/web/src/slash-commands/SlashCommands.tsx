@@ -11,6 +11,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
+import escapeHtml from "escape-html";
 import {
     ContentHelpers,
     Direction,
@@ -73,7 +74,12 @@ export const Commands = [
         args: "<message>",
         description: _td("slash_command|spoiler"),
         runFn: function (cli, roomId, threadId, message = "") {
-            return successSync(ContentHelpers.makeHtmlMessage(message, `<span data-mx-spoiler>${message}</span>`));
+            // Format the spoiler contents the same way as a regular message, so that e.g. `**bold**` is rendered.
+            const formatted = SettingsStore.getValue("MessageComposerInput.useMarkdown")
+                ? htmlSerializeFromMdIfNeeded(message)
+                : undefined;
+            const html = `<span data-mx-spoiler>${formatted ?? escapeHtml(message)}</span>`;
+            return successSync(ContentHelpers.makeHtmlMessage(message, html));
         },
         category: CommandCategories.messages,
     }),
